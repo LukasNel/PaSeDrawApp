@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<!--
+    Copyright (c) 2012-2016 Adobe Systems Incorporated. All rights reserved.
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
+    <!-- This is a wide open CSP declaration. To lock this down for production, see below. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline'; style-src 'self' 'unsafe-inline'; media-src *" />
+    <!-- Good default declaration:
+    * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+    * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+    * Disables use of eval() and inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+        * Enable inline JS: add 'unsafe-inline' to default-src
+        * Enable eval(): add 'unsafe-eval' to default-src
+    * Create your own at http://cspisawesome.com
+    -->
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *" /> -->
+
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <title>Hello World</title>
+</head>
+
+<body onload="init()">
+<script type="text/javascript">
+    var canvas, ctx, flag = false,
+        prevX = 0,
+        currX = 0,
+        prevY = 0,
+        currY = 0,
+        dot_flag = false;
+
+    var x = "black",
+        y = 2;
+    function getTouchPos(canvasDom, touchEvent) {
+      var rect = canvasDom.getBoundingClientRect();
+      return {
+        x: touchEvent.touches[0].clientX - rect.left,
+        y: touchEvent.touches[0].clientY - rect.top
+      };
+    }
+    function fitToContainer(canvasel,canvascont){
+      // Make it visually fill the positioned parent
+      // ...then set the internal size to match
+      canvasel.width  = canvascont.clientWidth;
+      canvasel.height = canvascont.clientHeight;
+    }
+    function init() {
+        canvas = document.getElementById('can');
+        var canvascontainer = document.getElementById('cancontainer');
+        ctx = canvas.getContext("2d");
+       // alert(canvascontainer.offsetWidth);   
+       // alert(canvascontainer.offsetHeight);
+       // canvas.width = canvascontainer.offsetWidth;
+       // canvas.height = canvascontainer.offsetHeight;   
+        fitToContainer(canvas,canvascontainer);
+        w = canvas.width;  
+        h = canvas.height;
+        
+        canvas.addEventListener("mousemove", function (e) {
+            findxy('move', e)
+        }, false);
+        canvas.addEventListener("mousedown", function (e) {
+            findxy('down', e)
+        }, false);
+        canvas.addEventListener("mouseup", function (e) {
+            findxy('up', e)
+        }, false);
+        canvas.addEventListener("mouseout", function (e) {
+            findxy('out', e)
+        }, false);  
+        window.onresize = function(event) {
+            var canvascontainer = document.getElementById('cancontainer');
+            var canvas = document.getElementById('can');
+            fitToContainer(canvas,canvascontainer);
+            
+        };
+        window.addEventListener('orientationchange', function(){
+            var canvascontainer = document.getElementById('cancontainer');
+            var canvas = document.getElementById('can');
+            fitToContainer(canvas,canvascontainer);
+         }, false);
+        canvas.addEventListener("touchstart", function (e) {
+        mousePos = getTouchPos(canvas, e);
+          var touch = e.touches[0];
+          var mouseEvent = new MouseEvent("mousedown", {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+          });
+          canvas.dispatchEvent(mouseEvent);
+        }, false);
+        canvas.addEventListener("touchend", function (e) {
+          var mouseEvent = new MouseEvent("mouseup", {});
+          canvas.dispatchEvent(mouseEvent);
+        }, false);
+        canvas.addEventListener("touchmove", function (e) {
+          var touch = e.touches[0];
+          var mouseEvent = new MouseEvent("mousemove", {
+            clientX: touch.clientX,
+            clientY: touch.clientY
+          });
+          canvas.dispatchEvent(mouseEvent);
+          e.preventDefault();
+        }, false);
+        window.requestAnimFrame = (function (callback) {
+        return window.requestAnimationFrame || 
+           window.webkitRequestAnimationFrame ||
+           window.mozRequestAnimationFrame ||
+           window.oRequestAnimationFrame ||
+           window.msRequestAnimaitonFrame ||
+           function (callback) {
+        window.setTimeout(callback, 1000/60);
+           };
+})();
+(function drawLoop () {
+  requestAnimFrame(drawLoop);
+  draw();
+})();
+
+    }
+        
+    function color(obj) {
+        switch (obj.id) {
+            case "green":
+                x = "green";
+                break;
+            case "blue":
+                x = "blue";
+                break;
+            case "red":
+                x = "red";
+                break;
+            case "yellow":
+                x = "yellow";
+                break;
+            case "orange":
+                x = "orange";
+                break;
+            case "black":
+                x = "black";
+                break;
+            case "white":
+                x = "white";
+                break;
+        }
+        if (x == "white") y = 14;
+        else y = 2;
+    
+    }
+    
+    function draw() {
+    if (flag) {
+        //ctx.beginPath();
+        ctx.moveTo(prevX, prevY);
+        ctx.lineTo(currX, currY);
+        ctx.strokeStyle = x;
+        ctx.lineWidth = y;
+        ctx.stroke();
+        }
+    }
+    
+    function erase() {
+        var m = confirm("Want to clear");
+        if (m) {
+            ctx.clearRect(0, 0, w*w, h*h);
+            document.getElementById("canvasimg").style.display = "none";
+        }
+    }
+    
+    function save() {
+        document.getElementById("canvasimg").style.border = "2px solid";
+        var dataURL = canvas.toDataURL();
+        document.getElementById("canvasimg").src = dataURL;
+        document.getElementById("canvasimg").style.display = "inline";
+    }
+    
+    function findxy(res, e) {
+        if (res == 'down') {
+            prevX = currX;
+            prevY = currY;
+            currX = e.clientX - canvas.offsetLeft;
+            currY = e.clientY - canvas.offsetTop;
+    
+            flag = true;
+            dot_flag = true;
+            if (dot_flag) {
+                ctx.beginPath();
+                ctx.fillStyle = x;
+                ctx.fillRect(currX, currY, 2, 2);
+                ctx.closePath();
+                dot_flag = false;
+            }
+            prevX = currX;
+            prevY = currY;
+            ctx.beginPath();
+            draw();
+            
+        ctx.closePath();
+        }
+        if (res == 'up' || res == "out") {
+            flag = false;
+            
+            ctx.closePath();
+        }
+        if (res == 'move') {
+            if (flag) {
+                prevX = currX;
+                prevY = currY;
+                currX = e.clientX - canvas.offsetLeft;
+                currY = e.clientY - canvas.offsetTop;
+               // draw();
+            }
+        }
+    }
+    </script>
+    <h1>E-Signature</h1>
+	<p>Sign in the canvas below and save your signature as an image!</p>
+        <div id="cancontainer" style="">
+            <canvas id="can" width="200" height="200" style=""></canvas>
+        </div>
+        <div id="buttondiv">
+            <input type="button" value="save" id="btn" size="30" onclick="save()" style="">
+            <input type="button" value="clear" id="clr" size="23" onclick="erase()" style="">
+        </div>
+        <div style="display:inline-block;">Choose Color<br>
+            <div class = "colourbutton" style="background:green;" id="green" onclick="color(this)"></div>
+            <div class = "colourbutton" style="background:blue;" id="blue" onclick="color(this)"></div>
+            <div class = "colourbutton" style="background:red;" id="red" onclick="color(this)"></div>
+            <div class = "colourbutton" style="background:yellow;" id="yellow" onclick="color(this)"></div>
+            <div class = "colourbutton" style="background:orange;" id="orange" onclick="color(this)"></div>
+            <div class = "colourbutton" style="background:black;" id="black" onclick="color(this)"></div>
+        </div>
+        
+        <div style="">Eraser<br>
+            <div style="width:15px;height:15px;background:white;border:2px solid;" id="white" onclick="color(this)"></div>
+        </div>
+        
+        <img id="canvasimg" style="" style="display:none;">
+        
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript">
+        app.initialize();
+    </script>
+</body>
+
+</html>
